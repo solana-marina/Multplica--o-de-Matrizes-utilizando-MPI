@@ -13,7 +13,7 @@ A multiplicação é dividida por linhas:
 ```text
 C = A * B
 
-Cada trabalhador recebe uma ou mais linhas de A
+Cada tarefa enviada ao trabalhador contém linhas de A
 e a matriz B completa.
 ```
 
@@ -21,23 +21,45 @@ Cada trabalhador calcula apenas sua parte da matriz `C`. No fim, a origem junta 
 
 ## Dependências
 
-O programa usa:
+Ambiente usado e testado neste projeto:
 
-- Python 3
-- Uma implementação MPI, como MS-MPI, MPICH ou Open MPI
-- A biblioteca Python `mpi4py`
+- Python `3.13.5`
+- Microsoft MPI `10.1.12498.52`
+- `mpi4py` `4.1.2`
+- Windows Package Manager `winget`
 
-Instale o `mpi4py` com:
+Instale as dependências no Windows com estes comandos:
 
-```bash
-pip install mpi4py
+```powershell
+winget install --id Python.Python.3.13 --version 3.13.5 --exact --accept-source-agreements --accept-package-agreements
+winget install --id Microsoft.msmpi --version 10.1.12498.52 --exact --accept-source-agreements --accept-package-agreements --silent
+python -m pip install mpi4py==4.1.2
 ```
 
-No Windows, pode ser necessário instalar o MS-MPI antes de executar o programa com `mpiexec`.
+Depois da instalação, feche o terminal atual e abra um terminal novo para carregar o `mpiexec` no `PATH`.
+
+Verifique a instalação com estes comandos:
+
+```powershell
+python --version
+python -m pip show mpi4py
+mpiexec -help
+python -c "from mpi4py import MPI; print(MPI.Get_library_version())"
+```
+
+Resultados esperados:
+
+```text
+Python 3.13.5
+Name: mpi4py
+Version: 4.1.2
+Microsoft MPI Startup Program [Version 10.1.12498.52]
+Microsoft MPI 10.1.12498.52
+```
 
 ## Como executar
 
-Execute sempre com `mpiexec` ou `mpirun`.
+Execute com `mpiexec`.
 
 Exemplo mínimo com 3 processos:
 
@@ -67,9 +89,9 @@ mpiexec -n 4 python main.py --n 5 --seed 42 --sleep-min 0.1 --sleep-max 0.5
 
 O programa usa pelo menos três tipos de processo:
 
-- `rank 0`: origem ou mestre.
+- `rank 0`: origem/mestre.
 - `rank 1`: servidor intermediário.
-- `rank 2` em diante: trabalhadores ou destinos.
+- `rank 2` em diante: trabalhadores/destinos.
 
 Com 3 processos:
 
@@ -133,8 +155,8 @@ Os status usados são:
 
 - `pendente`: mensagem registrada e ainda não concluída no processo atual.
 - `enviada`: mensagem enviada por MPI.
-- `processada`: mensagem consumida ou calculada.
-- `entregue`: mensagem encaminhada ou recebida no destino esperado.
+- `processada`: mensagem consumida pelo processo atual.
+- `entregue`: mensagem recebida no destino esperado.
 
 Essa persistência é uma simulação acadêmica. Ela mostra que a mensagem fica registrada em arquivo enquanto o processo dorme temporariamente. Assim, o sleep atrasa o processamento, mas não apaga as mensagens.
 
